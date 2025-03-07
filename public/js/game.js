@@ -1,3 +1,5 @@
+import { snakeHeadImage } from './snake-head.js';
+
 const socket = io();
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -44,16 +46,39 @@ function render() {
 
     // 绘制蛇
     gameState.players.forEach(player => {
-        // 根据是否是当前玩家来决定蛇的颜色
-        ctx.fillStyle = player.id === socket.id ? '#2196F3' : '#FF0000';
-        player.snake.forEach(segment => {
-            ctx.fillRect(
-                segment.x * CELL_SIZE,
-                segment.y * CELL_SIZE,
-                CELL_SIZE,
-                CELL_SIZE
-            );
+        // 根据是否是当前玩家来决定蛇的颜色和样式
+        const isCurrentPlayer = player.id === socket.id;
+        ctx.fillStyle = isCurrentPlayer ? '#2196F3' : '#FF0000';
+        
+        // 遍历蛇的每个部分
+        player.snake.forEach((segment, index) => {
+            if (isCurrentPlayer && index === 0) {
+                // 为当前玩家绘制蛇头图片
+                ctx.save();
+                const x = segment.x * CELL_SIZE;
+                const y = segment.y * CELL_SIZE;
+                
+                // 根据移动方向设置旋转角度
+                ctx.translate(x + CELL_SIZE/2, y + CELL_SIZE/2);
+                switch(player.direction) {
+                    case 'up': ctx.rotate(-Math.PI/2); break;
+                    case 'down': ctx.rotate(Math.PI/2); break;
+                    case 'left': ctx.rotate(Math.PI); break;
+                    case 'right': ctx.rotate(0); break;
+                }
+                ctx.drawImage(snakeHeadImage, -CELL_SIZE/2, -CELL_SIZE/2, CELL_SIZE, CELL_SIZE);
+                ctx.restore();
+            } else {
+                // 绘制蛇身
+                ctx.fillRect(
+                    segment.x * CELL_SIZE,
+                    segment.y * CELL_SIZE,
+                    CELL_SIZE,
+                    CELL_SIZE
+                );
+            }
         });
+
     });
 }
 
